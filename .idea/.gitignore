@@ -1,0 +1,31 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+.idea/
+# 编译生成的文件
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+   
+# 测试二进制文件
+*.test
+   
+# 输出文件
+*.out
+   
+# Go工作区文件
+go.work
+   
+# IDE相关文件
+.idea/
+*.iml
+   
+# 日志文件
+*.log
