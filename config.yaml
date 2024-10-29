@@ -8,3 +8,5 @@ api:
 model_mapping:
   ggl-4: "gpt-4-turbo"
   gclaude-3-5-sonnet: "claude-3-5-sonnet-20240620"
+  gclaude-3-5-sonnet-20241022: "claude-3-5-sonnet-20241022"
+  gpt-4o: "gpt-4o"
