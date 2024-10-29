@@ -29,6 +29,21 @@ func main() {
 	loadConfig()
 	//设置路由
 	r := gin.Default()
+
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*") // 允许所有域名访问，或替换为特定域名
+		c.Header("Access-Control-Allow-Methods", "POST, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
+
+		// 处理预检请求
+		if c.Request.Method == http.MethodOptions {
+			c.Status(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	})
+
 	r.POST("/chat/completions", handleChat)
 
 	addr := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
@@ -50,7 +65,7 @@ func loadConfig() {
 
 func handleChat(c *gin.Context) {
 	headers := make(map[string]string)
-	
+
 	// 收集所有需要的请求头
 	headers["Content-Type"] = c.GetHeader("Content-Type")
 	// 只有当 Accept 头存在时才添加
