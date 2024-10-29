@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json" // 添加这行
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,25 +9,42 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
 	Server struct {
-		Address string `yaml:"address"`
-		Port    int    `yaml:"port"`
-	} `yaml:"server"`
+		Address string
+		Port    int
+	}
 	API struct {
-		GPTGodURL string `yaml:"gptgod_url"`
-	} `yaml:"api"`
-	ModelMapping map[string]string `yaml:"model_mapping"`
+		GPTGodURL string
+	}
+	ModelMapping map[string]string
 }
 
-var config Config
+var config = Config{
+	Server: struct {
+		Address string
+		Port    int
+	}{
+		Address: "127.0.0.1",
+		Port:    9998,
+	},
+	API: struct {
+		GPTGodURL string
+	}{
+		GPTGodURL: "https://api.gptgod.online/v1/chat/completions",
+	},
+	ModelMapping: map[string]string{
+		"ggl-4":                       "gpt-4-turbo",
+		"gclaude-3-5-sonnet":          "claude-3-5-sonnet-20240620",
+		"gclaude-3-5-sonnet-20241022": "claude-3-5-sonnet-20241022",
+		"gpt-4o":                      "gpt-4o",
+	},
+}
 
 func main() {
-	loadConfig()
-	//设置路由
+	// 设置路由
 	r := gin.Default()
 	r.POST("/chat/completions", handleChat)
 
@@ -36,24 +53,11 @@ func main() {
 	r.Run(addr)
 }
 
-func loadConfig() {
-	data, err := ioutil.ReadFile("config.yaml")
-	if err != nil {
-		log.Fatalf("Error reading config file: %v", err)
-	}
-
-	err = yaml.Unmarshal(data, &config)
-	if err != nil {
-		log.Fatalf("Error parsing config file: %v", err)
-	}
-}
-
 func handleChat(c *gin.Context) {
 	headers := make(map[string]string)
-	
+
 	// 收集所有需要的请求头
 	headers["Content-Type"] = c.GetHeader("Content-Type")
-	// 只有当 Accept 头存在时才添加
 	if accept := c.GetHeader("Accept"); accept != "" {
 		headers["Accept"] = accept
 	}
@@ -86,20 +90,17 @@ func handleChat(c *gin.Context) {
 	}
 
 	log.Printf("Received response: %s", string(response))
-
 	c.Data(http.StatusOK, "application/json", response)
 }
 
 func forwardRequest(requestBody map[string]interface{}, headers map[string]string) ([]byte, error) {
-	jsonBody, err := json.Marshal(requestBody) // 这里使用了 json
+	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
 		return nil, err
 	}
 
-	// 打印实际发送的请求地址
 	log.Printf("Forwarding request to: %s", config.API.GPTGodURL)
 
-	// 打印实际发送的请求参数
 	log.Printf("Request parameters: %s", string(jsonBody))
 
 	req, err := http.NewRequest("POST", config.API.GPTGodURL, strings.NewReader(string(jsonBody)))
@@ -107,7 +108,6 @@ func forwardRequest(requestBody map[string]interface{}, headers map[string]strin
 		return nil, err
 	}
 
-	// 设置所有请求头
 	for key, value := range headers {
 		req.Header.Set(key, value)
 		log.Printf("Setting header: %s: %s", key, value)
@@ -125,7 +125,6 @@ func forwardRequest(requestBody map[string]interface{}, headers map[string]strin
 		return nil, err
 	}
 
-	// 打印响应状态码
 	log.Printf("Response status code: %d", resp.StatusCode)
 
 	return responseBody, nil
